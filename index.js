@@ -3,7 +3,9 @@ const express = require("express");
 const { request } = require("http");
 const app = express();
 
-let notes = [
+app.use(express.json());
+
+let persons = [
   {
     id: 1,
     name: "Arto Hellas",
@@ -31,11 +33,11 @@ app.get("/", (request, response) => {
 });
 
 app.get("/api/persons", (request, response) => {
-  response.json(notes);
+  response.json(persons);
 });
 
 app.get("/info", (request, response) => {
-  const amountOfPeople = notes.length;
+  const amountOfPeople = persons.length;
   const date = new Date();
 
   response.send(
@@ -43,14 +45,28 @@ app.get("/info", (request, response) => {
   );
 });
 
+app.post("/api/persons", (request, response) => {
+  const person = request.body;
+
+  const newPerson = {
+    id: Math.floor(Math.random() * 1000),
+    name: person.name,
+    phone: person.phone,
+  };
+
+  persons = [...persons, newPerson];
+
+  response.json(newPerson);
+});
+
 app.get("/api/persons/:id", (request, response) => {
   const id = Number(request.params.id);
-  response.json(notes.find((note) => note.id === id));
+  response.json(persons.find((note) => note.id === id));
 });
 
 app.delete("/api/persons/:id", (request, response) => {
   const id = Number(request.params.id);
-  notes = notes.filter((note) => note.id !== id);
+  persons = persons.filter((note) => note.id !== id);
   response.status(204).end();
 });
 
