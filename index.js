@@ -48,6 +48,12 @@ app.get("/api/persons/:id", (request, response) => {
   response.json(notes.find((note) => note.id === id));
 });
 
+app.delete("/api/persons/:id", (request, response) => {
+  const id = Number(request.params.id);
+  notes = notes.filter((note) => note.id !== id);
+  response.status(204).end();
+});
+
 const PORT = 3001;
 app.listen(PORT, () => {
   console.log("server running");
