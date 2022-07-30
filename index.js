@@ -48,10 +48,18 @@ app.get("/info", (request, response) => {
 app.post("/api/persons", (request, response) => {
   const person = request.body;
 
+  if (!person.name || !person.number) {
+    return response.status(400).json({ error: "name or number is missing" });
+  }
+
+  if (persons.find((p) => p.name === person.name)) {
+    return response.status(409).json({ error: "name must be unique" });
+  }
+
   const newPerson = {
     id: Math.floor(Math.random() * 1000),
     name: person.name,
-    phone: person.phone,
+    number: person.number,
   };
 
   persons = [...persons, newPerson];
