@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
+    "build":"rm -rf build && cd ../openBootcampExercises/part2/phonebook/ && npm run build && cp -r build ../../../openBootcampPart3/",
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "nodemon index.js"
   },
