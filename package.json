@@ -5,7 +5,9 @@
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
-    "build:ui":"rm -rf build && cd ../openBootcampExercises/part2/phonebook/ && npm run build && cp -r build ../../../openBootcampPart3/",
+    "deploy": "git push heroku main",
+    "build:ui": "rm -rf build && cd ../openBootcampExercises/part2/phonebook/ && npm run build && cp -r build ../../../openBootcampPart3/",
+    "deploy:full": "npm run build:ui && git add . && git commit -m uibuild && npm run deploy",
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "nodemon index.js"
   },
@@ -23,6 +25,7 @@
   "dependencies": {
     "cors": "2.8.5",
     "express": "4.18.1",
+    "mongoose": "^6.5.0",
     "morgan": "1.10.0"
   },
   "devDependencies": {
