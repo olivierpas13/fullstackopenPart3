@@ -1,3 +1,5 @@
+require('dotenv').config();
+
 const express = require('express');
 
 const cors = require('cors');
@@ -5,6 +7,13 @@ const cors = require('cors');
 const app = express();
 
 const morgan = require('morgan');
+
+const mongoose = require('mongoose');
+const Person = require('./models/person');
+
+const url = process.env.MONGODB_URI;
+
+mongoose.connect(url);
 
 morgan.token('body', (req) => JSON.stringify(req.body));
 
@@ -18,35 +27,16 @@ app.use(
 
 app.use(express.static('build'));
 
-let persons = [
-  {
-    id: 1,
-    name: 'Arto Hellas',
-    number: '040-123456',
-  },
-  {
-    id: 2,
-    name: 'Ada Lovelace',
-    number: '39-44-5323523',
-  },
-  {
-    id: 3,
-    name: 'Dan Abramov',
-    number: '12-43-234345',
-  },
-  {
-    id: 4,
-    name: 'Mary Poppendieck',
-    number: '39-23-6423122',
-  },
-];
+let persons = [];
 
 app.get('/', (request, response) => {
   response.send('<h1 color= red >Hola mundo, si esta funcionando?</h1>');
 });
 
 app.get('/api/persons', (request, response) => {
-  response.json(persons);
+  Person.find({}).then((people) => {
+    response.json(people);
+  });
 });
 
 app.get('/info', (request, response) => {
@@ -59,30 +49,27 @@ app.get('/info', (request, response) => {
 });
 
 app.post('/api/persons', (request, response) => {
-  const person = request.body;
-  if (!person.name || !person.number) {
-    return response.status(400).json({ error: 'name or number is missing' });
-  }
+  const { body } = request;
+  // if (!person.name || !person.number) {
+  //   return response.status(400).json({ error: 'name or number is missing' });
+  // }
 
-  if (persons.find((p) => p.name === person.name)) {
-    return response.status(409).json({ error: 'name must be unique' });
-  }
+  // if (persons.find((p) => p.name === person.name)) {
+  //   return response.status(409).json({ error: 'name must be unique' });
+  // }
+  const person = new Person({
+    name: body.name,
+    number: body.number,
+  });
 
-  const newPerson = {
-    id: Math.floor(Math.random() * 1000),
-    name: person.name,
-    number: person.number,
-  };
-
-  persons = [...persons, newPerson];
-
-  response.json(newPerson);
-  return newPerson;
+  person.save().then((savedPerson) => {
+    response.json(savedPerson);
+  });
 });
 
 app.get('/api/persons/:id', (request, response) => {
-  const id = Number(request.params.id);
-  response.json(persons.find((note) => note.id === id));
+  const { id } = request.params;
+  Person.findById(id).then((note) => response.json(note));
 });
 
 app.delete('/api/persons/:id', (request, response) => {
@@ -91,6 +78,6 @@ app.delete('/api/persons/:id', (request, response) => {
   response.status(204).end();
 });
 
-const PORT = process.env.PORT || 3001;
+const { PORT } = process.env;
 app.listen(PORT, () => {
 });

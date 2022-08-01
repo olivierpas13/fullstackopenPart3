@@ -24,6 +24,7 @@
   "homepage": "https://github.com/olivierpas13/fullstackopenPart3#readme",
   "dependencies": {
     "cors": "2.8.5",
+    "dotenv": "^16.0.1",
     "express": "4.18.1",
     "mongoose": "^6.5.0",
     "morgan": "1.10.0"
