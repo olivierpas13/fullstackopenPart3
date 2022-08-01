@@ -27,8 +27,6 @@ app.use(
 
 app.use(express.static('build'));
 
-let persons = [];
-
 app.get('/', (request, response) => {
   response.send('<h1 color= red >Hola mundo, si esta funcionando?</h1>');
 });
@@ -40,7 +38,7 @@ app.get('/api/persons', (request, response) => {
 });
 
 app.get('/info', (request, response) => {
-  const amountOfPeople = persons.length;
+  const amountOfPeople = Person.length;
   const date = new Date();
 
   response.send(
@@ -48,15 +46,12 @@ app.get('/info', (request, response) => {
   );
 });
 
-app.post('/api/persons', (request, response) => {
+/* eslint-disable */
+app.post('/api/persons', (request, response, next) => {
   const { body } = request;
-  // if (!person.name || !person.number) {
-  //   return response.status(400).json({ error: 'name or number is missing' });
-  // }
-
-  // if (persons.find((p) => p.name === person.name)) {
-  //   return response.status(409).json({ error: 'name must be unique' });
-  // }
+  if (!body.name || !body.number) {
+    return response.status(400).json({ error: 'name or number is missing' });
+  }
   const person = new Person({
     name: body.name,
     number: body.number,
@@ -64,19 +59,60 @@ app.post('/api/persons', (request, response) => {
 
   person.save().then((savedPerson) => {
     response.json(savedPerson);
-  });
+  }).catch((err) => next(err));
 });
+/* eslint-enable */
 
-app.get('/api/persons/:id', (request, response) => {
+app.get('/api/persons/:id', (request, response, next) => {
   const { id } = request.params;
-  Person.findById(id).then((note) => response.json(note));
+
+  Person.findById(id).then((person) => (person
+    ? response.json(person)
+    : response.status(404).end())).catch((err) => next(err));
 });
 
-app.delete('/api/persons/:id', (request, response) => {
-  const id = Number(request.params.id);
-  persons = persons.filter((note) => note.id !== id);
-  response.status(204).end();
+app.delete('/api/persons/:id', (request, response, next) => {
+  const { id } = request.params;
+
+  Person.findByIdAndDelete(id).then(() => {
+    response.status(204).end();
+  })
+    .catch((err) => next(err));
 });
+
+app.patch('/api/persons/:id', (request, response, next) => {
+  const { id } = request.params;
+  const { body } = request;
+
+  const person = {
+    // name: body.name,
+    number: body.number,
+  };
+
+  Person.findByIdAndUpdate(id, person, { new: true })
+    .then((newPerson) => response.json(newPerson))
+    .catch((err) => next(err));
+});
+
+const unknownEndpoint = (request, response) => {
+  response.status(404).send({ error: 'unknown endpoint' });
+};
+
+app.use(unknownEndpoint);
+
+/* eslint-disable */
+const errorHandler = (error, request, response, next) => {
+  console.error(error.message);
+
+  if (error.name === 'CastError') {
+    return response.status(400).send({ error: 'malformatted id' });
+  }
+  next(error);
+  return response.status(500);
+};
+/* eslint-enable */
+
+app.use(errorHandler);
 
 const { PORT } = process.env;
 app.listen(PORT, () => {

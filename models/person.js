@@ -3,9 +3,11 @@ const { Schema, model } = require('mongoose');
 
 const url = process.env.MONGODB_URI;
 
+/* eslint-disable */
 mongoose.connect(url)
   .then(() => console.log('Conected'))
   .catch((err) => console.log(`error in mongodb: ${err.message}`));
+/* eslint-enable */
 
 const personSchema = new Schema({
   name: String,
