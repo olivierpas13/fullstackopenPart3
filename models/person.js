@@ -10,8 +10,24 @@ mongoose.connect(url)
 /* eslint-enable */
 
 const personSchema = new Schema({
-  name: String,
-  number: Number,
+  name: {
+    type: String,
+    minlength: 3,
+    required: true,
+  },
+  number: {
+    type: String,
+    match: [/^[0-9-]+$/],
+    validate: (number) => {
+      if (number.includes('-')) {
+        const arr = number.split('-');
+        return arr.length === 2 && arr[0].length === 3;
+      }
+      return number;
+    },
+    minLength: 8,
+    required: true,
+  },
 });
 
 /* eslint-disable */

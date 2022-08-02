@@ -47,10 +47,11 @@ app.get('/info', (request, response) => {
 });
 
 /* eslint-disable */
-app.post('/api/persons', (request, response, next) => {
+app.post('/api/persons', async (request, response, next) => {
   const { body } = request;
-  if (!body.name || !body.number) {
-    return response.status(400).json({ error: 'name or number is missing' });
+  const existUsername = await Person.findOne({ name: body.name });
+  if (existUsername) {
+    response.status(409).end();
   }
   const person = new Person({
     name: body.name,
@@ -89,7 +90,7 @@ app.patch('/api/persons/:id', (request, response, next) => {
     number: body.number,
   };
 
-  Person.findByIdAndUpdate(id, person, { new: true })
+  Person.findByIdAndUpdate(id, person, { new: true, runValidators: true, context: 'query' })
     .then((newPerson) => response.json(newPerson))
     .catch((err) => next(err));
 });
@@ -107,6 +108,10 @@ const errorHandler = (error, request, response, next) => {
   if (error.name === 'CastError') {
     return response.status(400).send({ error: 'malformatted id' });
   }
+  if (error.name === "ValidationError") {
+    return response.status(400).send({ error: error.message });
+  }
+  
   next(error);
   return response.status(500);
 };
