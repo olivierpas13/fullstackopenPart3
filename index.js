@@ -89,9 +89,11 @@ app.patch('/api/persons/:id', (request, response, next) => {
     // name: body.name,
     number: body.number,
   };
-
   Person.findByIdAndUpdate(id, person, { new: true, runValidators: true, context: 'query' })
-    .then((newPerson) => response.json(newPerson))
+    .then((newPerson) => {
+      if (!newPerson) { throw new Error('ID not found'); }
+      response.json(newPerson);
+    })
     .catch((err) => next(err));
 });
 
@@ -110,6 +112,9 @@ const errorHandler = (error, request, response, next) => {
   }
   if (error.name === "ValidationError") {
     return response.status(400).send({ error: error.message });
+  }
+  if (error.message === 'ID not found'){
+    return response.status(409).send({ error: error.message})
   }
   
   next(error);
